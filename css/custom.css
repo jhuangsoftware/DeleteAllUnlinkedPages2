@@ -1,0 +1,22 @@
+body {
+	padding: 15px;
+}
+
+form.form-inline {
+	margin-bottom: 0px;
+}
+
+.loading {
+	padding-top: 25px;
+	padding-bottom: 25px;
+}
+
+.loading img {
+	display: block;
+    margin-left: auto;
+    margin-right: auto 
+}
+
+.unlinked-page .deleting {
+	display: none;
+}
