@@ -1,6 +1,10 @@
-﻿<%@ Page Language="C#" validateRequest="false" %>
+﻿<%@ Page Language="C#" validateRequest="false" Debug="true" %>
+<%@ Import Namespace="System" %>
+<%@ Import Namespace="System.Net" %>
+<%@ Import Namespace="System.Xml" %>
+<%@ Import Namespace="System.Web" %>
 <script runat="server">
-public class RqlWebServiceConnector
+ public class RqlWebServiceConnector
 {
     public string SendRql(string Rql)
     {
@@ -13,16 +17,16 @@ public class RqlWebServiceConnector
         if (string.IsNullOrEmpty(Rql))
             return "";
 
-        string WebServiceUri = this.GetWebServiceUrl();
+        string WebServiceUri = GetWebServiceUrl();
 
-        string Response = this.SendRqlToWebService(WebServiceUri, Rql);
+        string Response = SendRqlToWebService(WebServiceUri, Rql);
 
         return Response;
     }
 
     private string SendRqlToWebService(string WebServiceUrl, string Rql)
     {
-        System.Net.ServicePointManager.ServerCertificateValidationCallback = new System.Net.Security.RemoteCertificateValidationCallback(
+        ServicePointManager.ServerCertificateValidationCallback = new System.Net.Security.RemoteCertificateValidationCallback(
             delegate
             {
                 return true;
@@ -30,7 +34,7 @@ public class RqlWebServiceConnector
         );
 
         string Response = "";
-        System.Net.WebClient oWC = new System.Net.WebClient();
+        WebClient oWC = new WebClient();
         oWC.Headers.Add("Content-Type", "text/xml; charset=utf-8");
         oWC.Headers.Add("SOAPAction", "http://tempuri.org/RDCMSXMLServer/action/XmlServer.Execute");
 
@@ -46,11 +50,11 @@ public class RqlWebServiceConnector
         return Response;
     }
 
-    public string GetWebServiceUrl()
+    private string GetWebServiceUrl()
     {
         if (HttpContext.Current.Session["WebServiceUrl"] == null)
         {
-            HttpContext.Current.Session["WebServiceUrl"] = HttpContext.Current.Request.Url.Scheme + ":" + "//" + "localhost" + "/cms/WebService/RqlWebService.svc";
+            HttpContext.Current.Session["WebServiceUrl"] = HttpContext.Current.Request.Url.Scheme + ":" + "//" + HttpContext.Current.Request.Url.Authority + "/cms/WebService/RqlWebService.svc";
             Uri WebServiceUri = new Uri(HttpContext.Current.Session["WebServiceUrl"].ToString());
 
 			string Rql = "";
@@ -58,7 +62,7 @@ public class RqlWebServiceConnector
 			Rql += "<s:Body><q1:Execute xmlns:q1=\"http://tempuri.org/RDCMSXMLServer/message/\"><sParamA></sParamA><sErrorA></sErrorA><sResultInfoA></sResultInfoA></q1:Execute></s:Body>";
 			Rql += "</s:Envelope>";
 			
-            string Response = this.SendRqlToWebService(WebServiceUri.ToString(), Rql);
+            string Response = SendRqlToWebService(WebServiceUri.ToString(), Rql);
 
 			if(Response == "")
             {
@@ -74,6 +78,14 @@ public class RqlWebServiceConnector
         }
 
         return HttpContext.Current.Session["WebServiceUrl"].ToString();
+    }
+
+    private string XmlEscape(string unescaped)
+    {
+        XmlDocument doc = new XmlDocument();
+        XmlNode node = doc.CreateElement("root");
+        node.InnerText = unescaped;
+        return node.InnerXml;
     }
 }
 </script>
